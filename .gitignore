@@ -1,5 +1,5 @@
 *x64/*
 *.ipch
 *.aps
-*.VC*
-*.vsidx
+*vsidx
+*db
