@@ -8,7 +8,6 @@
 #include "GrimTestDlg.h"
 #include "afxdialogex.h"
 #include <iostream>
-#include <vector>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -108,12 +107,7 @@ BOOL CGrimTestDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 
-	MoveWindow(0, 0, 655, 600);
-
-	m_pDlgImage = new DlgImage;
-	m_pDlgImage->Create(IDD_DlgImage, this);
-	m_pDlgImage->ShowWindow(SW_SHOW);
-	m_pDlgImage->MoveWindow(641, 250, 640, 480);
+	InitImage();
 
 
 
@@ -174,45 +168,48 @@ void CGrimTestDlg::OnBnClickedBtnDraw()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	int nHeight = m_pDlgImage->m_image.GetHeight();
-	CString str;
-	IDD_INPUT_RADIUS.GetWindowTextW(str);
-	int nRadius = _ttoi(str);
-	if (nRadius != 0 || str.Compare(_T("0")) == 0) {
+	CString strRadius;
+	IDD_INPUT_RADIUS.GetWindowTextW(strRadius);
+
+	int nRadius = _ttoi(strRadius);
+	if (nRadius != 0 || strRadius.Compare(_T("0")) == 0)
+	{
 		nRadius = nRadius;
-		if (nRadius > nHeight / 2 - 10 || nRadius <= 0) {
-			AfxMessageBox(_T("Number Out Of Range!!"));
+		if (nRadius > nHeight / 2 - 10 || nRadius <= 0) 
+		{
+			AfxMessageBox(_T("범위를 벗어났습니다!"));
 			IDD_INPUT_RADIUS.SetWindowTextW(_T(""));
 		}
-		else {
+		else
+		{
 			DrawCircle(nRadius);
-			std::cout << "발동됨" << std::endl;
 		}
 	}
 	else {
-		AfxMessageBox(_T("Please Input Number"));
+		AfxMessageBox(_T("숫자를 입력해주세요."));
 		IDD_INPUT_RADIUS.SetWindowTextW(_T(""));
 	}
-	DrawCircle(nRadius);
 }
 
 void CGrimTestDlg::DrawCircle(int nRadius)
 {
 	m_pDlgImage->pointArray.RemoveAll();	// 배열 초기화
+
 	unsigned char* fm = (unsigned char*)m_pDlgImage->m_image.GetBits();
 	int nWidth = m_pDlgImage->m_image.GetWidth();
 	int nHeight = m_pDlgImage->m_image.GetHeight();
 	int nPitch = m_pDlgImage->m_image.GetPitch();
-	memset(fm, BACK_COLOR, nWidth * nHeight);
+	memset(fm, 0xff, nWidth * nHeight);
 
 	int nCenterX = rand() % (nWidth - nRadius * 2) + nRadius;
 	int nCenterY = rand() % (nHeight - nRadius * 2) + nRadius;
 	
-	m_pDlgImage->m_nSelColor;
+	
 	m_pDlgImage->CenterPoint.x = nCenterX;
 	m_pDlgImage->CenterPoint.y = nCenterY;
 
 	// 원 테두리 좌표 배열에 저장
-	SetBorderPoint(nCenterX, nCenterY, nRadius, nPitch);
+	SaveBorderPoint(nCenterX, nCenterY, nRadius, nPitch);
 
 	GetData(nCenterX, nCenterY, nRadius);
 
@@ -229,28 +226,38 @@ bool CGrimTestDlg::IsCircleBorder(int i, int j, int nCenterX, int nCenterY, int 
 	// 원 테두리 두께 설정
 	int nThick = 2;
 
-	if (dDist <= nRadius * nRadius && dDist >= (nRadius - nThick) * (nRadius - nThick)) {
+	if (dDist <= nRadius * nRadius && dDist >= (nRadius - nThick) * (nRadius - nThick)) 
+	{
 		bRet = true;
 	}
 
 	return bRet;
 }
 
-void CGrimTestDlg::SetBorderPoint(int nCenterX, int nCenterY, int nRadius, int nPitch)
+void CGrimTestDlg::SaveBorderPoint(int nCenterX, int nCenterY, int nRadius, int nPitch)
 {
-	int nBlack = 0;
+	int dot = 0;
 	unsigned char* fm = (unsigned char*)m_pDlgImage->m_image.GetBits();
-	for (int j = nCenterY - nRadius; j <= nCenterY + nRadius; j++) {
-		for (int i = nCenterX - nRadius; i <= nCenterX + nRadius; i++) {
-			if (IsCircleBorder(i, j, nCenterX, nCenterY, nRadius)) {
-				fm[nPitch * j + i] = nBlack;
+	for (int j = nCenterY - nRadius; j <= nCenterY + nRadius; j++) 
+	{
+		for (int i = nCenterX - nRadius; i <= nCenterX + nRadius; i++)
+		{
+			if (IsCircleBorder(i, j, nCenterX, nCenterY, nRadius))
+			{
+				fm[nPitch * j + i] = dot;
 				m_pDlgImage->pointArray.Add(CPoint(i, j));
 			}
 		}
 	}
 }
 
-
+void CGrimTestDlg::SetPixelColor(unsigned char* fm, int x, int y, int nPitch, COLORREF color)
+{
+	fm[y * nPitch + x * 4 + 0] = GetBValue(color);  // 파란색
+	fm[y * nPitch + x * 4 + 1] = GetGValue(color);  // 녹색
+	fm[y * nPitch + x * 4 + 2] = GetRValue(color);  // 빨간색
+	fm[y * nPitch + x * 4 + 3] = 255;  // 알파 채널 (255: 불투명)
+}
 
 void CGrimTestDlg::OnDestroy()
 {
@@ -260,24 +267,29 @@ void CGrimTestDlg::OnDestroy()
 	if (m_pDlgImage)	delete m_pDlgImage;
 }
 
-bool CGrimTestDlg::isCrossLine(int i, int j, int nCenterX, int nCenterY, int nRadius)
+bool CGrimTestDlg::IsCrossLine(int i, int j, int nCenterX, int nCenterY, int nRadius)
 {
 	bool bRet = false;
 	int nWidth = m_pDlgImage->m_image.GetWidth();
 	int nHeight = m_pDlgImage->m_image.GetHeight();
 	int nCrossLength = nRadius / 10;	// 십자선 길이 설정
+
 	// 좌표가 전체 영역 범위를 넘어갔을 때 false
-	if (i < 0 || i >= nWidth) {
+	if (i < 0 || i >= nWidth)
+	{
 		bRet = false;
 	}
-	else if (j < 0 || j >= nHeight) {
+	else if (j < 0 || j >= nHeight) 
+	{
 		bRet = false;
 	}
 	// 십자선 영역에 있을 때 true
-	else if (i == nCenterX && j <= nCenterY + nCrossLength && j >= nCenterY - nCrossLength) {
+	else if (i == nCenterX && j <= nCenterY + nCrossLength && j >= nCenterY - nCrossLength) 
+	{
 		bRet = true;
 	}
-	else if (j == nCenterY && i <= nCenterX + nCrossLength && i >= nCenterX - nCrossLength) {
+	else if (j == nCenterY && i <= nCenterX + nCrossLength && i >= nCenterX - nCrossLength) 
+	{
 		bRet = true;
 	}
 
@@ -286,7 +298,6 @@ bool CGrimTestDlg::isCrossLine(int i, int j, int nCenterX, int nCenterY, int nRa
 
 void CGrimTestDlg::GetData(int nCenterX, int nCenterY, int nRadius)
 {
-	CString Figure = IsFigure();;
 	static int nTimes = 1;
 	unsigned char* fm = (unsigned char*)m_pDlgImage->m_image.GetBits();
 	int nWidth = m_pDlgImage->m_image.GetWidth();
@@ -298,9 +309,12 @@ void CGrimTestDlg::GetData(int nCenterX, int nCenterY, int nRadius)
 	int nSumY = 0;
 	int nCount = 0;
 	int nGray = 100;
-	for (int j = rect.top; j < rect.bottom; j++) {
-		for (int i = rect.left; i < rect.right; i++) {
-			if (fm[j * nPitch + i] != BACK_COLOR && fm[j * nPitch + i] != nGray) {
+	for (int j = rect.top; j < rect.bottom; j++)
+	{
+		for (int i = rect.left; i < rect.right; i++)
+		{
+			if (fm[j * nPitch + i] != 0xff && fm[j * nPitch + i] != nGray)
+			{
 				nSumX += i;
 				nSumY += j;
 				nCount++;
@@ -310,14 +324,16 @@ void CGrimTestDlg::GetData(int nCenterX, int nCenterY, int nRadius)
 
 	double dCenterX = (double)nSumX / nCount;
 	double dCenterY = (double)nSumY / nCount;
+	cout << nSumX << "," << nSumY << "," << nCount << endl;
 
-	double dMinDistance = isMinDistance(dCenterX, dCenterY);
-	double dMaxDistance = isMaxDistance(dCenterX, dCenterY);
 
 	// 무게 중심 십자선 그리기
-	for (int j = (int)dCenterY - nRadius; j <= (int)dCenterY + nRadius; j++) {
-		for (int i = (int)dCenterX - nRadius; i <= (int)dCenterX + nRadius; i++) {
-			if (isCrossLine(i, j, (int)dCenterX, (int)dCenterY, nRadius)) {
+	for (int j = (int)dCenterY - nRadius; j <= (int)dCenterY + nRadius; j++) 
+	{
+		for (int i = (int)dCenterX - nRadius; i <= (int)dCenterX + nRadius; i++) 
+		{
+			if (IsCrossLine(i, j, (int)dCenterX, (int)dCenterY, nRadius)) 
+			{
 				fm[nPitch * j + i] = nGray;
 			}
 		}
@@ -325,70 +341,17 @@ void CGrimTestDlg::GetData(int nCenterX, int nCenterY, int nRadius)
 
 	m_pDlgImage->Invalidate();
 
-	// 오차거리 구하기
-	double dErrorDistance = sqrt((nCenterX - dCenterX) * (nCenterX - dCenterX) + (nCenterY - dCenterY) * (nCenterY - dCenterY));
-
-	cout << "#" << nTimes << "  ";
-	wprintf(L"%s\n\n", (LPCTSTR)Figure);
+	cout << "#" << nTimes << endl;
 	cout << "무게중심 : (" << dCenterX << ", " << dCenterY << ")" << endl;
-	cout << "오차거리 : " << dErrorDistance << endl;
-	cout << "최소거리 : " << dMinDistance << endl;
-	cout << "최대거리 : " << dMaxDistance << endl;
-	cout << "======================================================" << endl;
 	nTimes++;
 }
 
-CString CGrimTestDlg::IsFigure()
+void CGrimTestDlg ::InitImage()
 {
-	CString str;
-	str = "Circle";
-	return str;
-}
+	MoveWindow(0, 0, 655, 600);
 
-double CGrimTestDlg::isMinDistance(double dCenterX, double dCenterY)
-{
-	unsigned char* fm = (unsigned char*)m_pDlgImage->m_image.GetBits();
-	int nWidth = m_pDlgImage->m_image.GetWidth();
-	int nHeight = m_pDlgImage->m_image.GetHeight();
-	int nPitch = m_pDlgImage->m_image.GetPitch();
-
-	CRect rect(0, 0, nWidth, nHeight);
-	int nGray = 100;
-	double dMinDis = (double)nWidth;
-	double dTempDis;
-	for (int j = rect.top; j < rect.bottom; j++) {
-		for (int i = rect.left; i < rect.right; i++) {
-			if (fm[j * nPitch + i] != BACK_COLOR && fm[j * nPitch + i] != nGray) {
-				dTempDis = sqrt((i - dCenterX) * (i - dCenterX) + (j - dCenterY) * (j - dCenterY));
-				if (dTempDis <= dMinDis) {
-					dMinDis = dTempDis;
-				}
-			}
-		}
-	}
-	return dMinDis;
-}
-
-double CGrimTestDlg::isMaxDistance(double dCenterX, double dCenterY)
-{
-	unsigned char* fm = (unsigned char*)m_pDlgImage->m_image.GetBits();
-	int nWidth = m_pDlgImage->m_image.GetWidth();
-	int nHeight = m_pDlgImage->m_image.GetHeight();
-	int nPitch = m_pDlgImage->m_image.GetPitch();
-
-	CRect rect(0, 0, nWidth, nHeight);
-	int nGray = 100;
-	double dMaxDis = 0.0;
-	double dTempDis;
-	for (int j = rect.top; j < rect.bottom; j++) {
-		for (int i = rect.left; i < rect.right; i++) {
-			if (fm[j * nPitch + i] != BACK_COLOR && fm[j * nPitch + i] != nGray) {
-				dTempDis = sqrt((i - dCenterX) * (i - dCenterX) + (j - dCenterY) * (j - dCenterY));
-				if (dTempDis >= dMaxDis) {
-					dMaxDis = dTempDis;
-				}
-			}
-		}
-	}
-	return dMaxDis;
+	m_pDlgImage = new DlgImage;
+	m_pDlgImage->Create(IDD_DlgImage, this);
+	m_pDlgImage->ShowWindow(SW_SHOW);
+	m_pDlgImage->MoveWindow(641, 250, 640, 480);
 }

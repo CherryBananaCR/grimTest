@@ -35,15 +35,14 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	void InitImage();
 	afx_msg void OnBnClickedBtnDraw();
 	void DrawCircle(int nRadius);
 	bool IsCircleBorder(int i, int j, int nCenterX, int nCenterY, int nRadius);
-	void SetBorderPoint(int nCenterX, int nCenterY, int nRadius, int nPitch);
+	void SaveBorderPoint(int nCenterX, int nCenterY, int nRadius, int nPitch);
 	afx_msg void OnDestroy();
 
-	bool isCrossLine(int i, int j, int nCenterX, int nCenterY, int nRadius);
+	bool IsCrossLine(int i, int j, int nCenterX, int nCenterY, int nRadius);
 	void GetData(int nCenterX, int nCenterY, int nRadius);
-	CString IsFigure();
-	double isMinDistance(double dCenterX, double dCenterY);
-	double isMaxDistance(double dCenterX, double dCenterY);
+	void SetPixelColor(unsigned char* fm, int x, int y, int nPitch, COLORREF color);
 };

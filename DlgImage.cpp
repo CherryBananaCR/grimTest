@@ -40,8 +40,7 @@ void DlgImage::InitImage()
 
 	m_image.Create(nWidth, -nHeight, nBpp);
 
-	if (nBpp == 8) 
-	{
+	if (nBpp == 8) {
 		static RGBQUAD rgb[256];
 		for (int i = 0; i < 256; i++)
 			rgb[i].rgbRed = rgb[i].rgbBlue = rgb[i].rgbGreen = i;
@@ -51,7 +50,7 @@ void DlgImage::InitImage()
 	int nPitch = m_image.GetPitch();
 	unsigned char* fm = (unsigned char*)m_image.GetBits();
 
-	memset(fm, BACK_COLOR, nWidth * nHeight);
+	memset(fm, 0xff, nWidth * nHeight);
 }
 // DlgImage 메시지 처리기
 
@@ -86,12 +85,13 @@ void DlgImage::drawData(CDC* pDC)
 	int size = pointArray.GetSize();
 	CRect rect;
 
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++) 
+	{
 		CPoint point = pointArray.GetAt(i);
 		rect.SetRect(point, point);
 		rect.InflateRect(1, 1);
 
-		pDC->FillRect(rect, &CBrush(IsBorderColor(m_nSelColor)));
+		pDC->FillRect(rect, &CBrush(COLOR_YELLOW));
 	}
 }
 
@@ -101,16 +101,12 @@ void DlgImage::drawCenter(CDC* pDC)
 	{
 		CRect rect;
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 1; i++) 
+		{
 			rect.SetRect(CenterPoint, CenterPoint);
 			rect.InflateRect(2, 2);
 
 			pDC->FillRect(rect, &CBrush(COLOR_RED));
 		}
 	}
-}
-
-COLORREF DlgImage::IsBorderColor(int m_nSelColor)
-{
-	return COLOR_YELLOW;
 }
