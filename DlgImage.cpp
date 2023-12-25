@@ -40,7 +40,8 @@ void DlgImage::InitImage()
 
 	m_image.Create(nWidth, -nHeight, nBpp);
 
-	if (nBpp == 8) {
+	if (nBpp == 8) 
+	{
 		static RGBQUAD rgb[256];
 		for (int i = 0; i < 256; i++)
 			rgb[i].rgbRed = rgb[i].rgbBlue = rgb[i].rgbGreen = i;

@@ -185,7 +185,8 @@ void CGrimTestDlg::OnBnClickedBtnDraw()
 			DrawCircle(nRadius);
 		}
 	}
-	else {
+	else 
+	{
 		AfxMessageBox(_T("숫자를 입력해주세요."));
 		IDD_INPUT_RADIUS.SetWindowTextW(_T(""));
 	}
