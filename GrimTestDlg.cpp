@@ -252,14 +252,6 @@ void CGrimTestDlg::SaveBorderPoint(int nCenterX, int nCenterY, int nRadius, int 
 	}
 }
 
-void CGrimTestDlg::SetPixelColor(unsigned char* fm, int x, int y, int nPitch, COLORREF color)
-{
-	fm[y * nPitch + x * 4 + 0] = GetBValue(color);  // 파란색
-	fm[y * nPitch + x * 4 + 1] = GetGValue(color);  // 녹색
-	fm[y * nPitch + x * 4 + 2] = GetRValue(color);  // 빨간색
-	fm[y * nPitch + x * 4 + 3] = 255;  // 알파 채널 (255: 불투명)
-}
-
 void CGrimTestDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
@@ -325,7 +317,6 @@ void CGrimTestDlg::GetData(int nCenterX, int nCenterY, int nRadius)
 
 	double dCenterX = (double)nSumX / nCount;
 	double dCenterY = (double)nSumY / nCount;
-	cout << nSumX << "," << nSumY << "," << nCount << endl;
 
 
 	// 무게 중심 십자선 그리기
